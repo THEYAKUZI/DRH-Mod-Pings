@@ -17,7 +17,7 @@ class PingSettingsPopup {
 	/** The popup's size in its own units; the game shows its popups at `SCALE`. */
 	static inline final W = 560.0;
 
-	static inline final H = 350.0;
+	static inline final H = 340.0;
 
 	static inline final SCALE = 1.8;
 
@@ -26,12 +26,12 @@ class PingSettingsPopup {
 
 	static inline final CY = 253.0;
 
-	/** Over the game's options, which are on the popup layer. */
-	static inline final LAYER = 106;
+	/** The game's popup layer, where its options are: added after them, the settings show over them. */
+	static inline final LAYER = 105;
 
 	static inline final MARGIN = 40.0;
 
-	static inline final ROWS_TOP = 72.0;
+	static inline final ROWS_TOP = 64.0;
 
 	static inline final ROW = 40.0;
 
@@ -41,6 +41,27 @@ class PingSettingsPopup {
 	static inline final CHOICE_GAP = 100.0;
 
 	static inline final BUTTON_SCALE = 0.7;
+
+	/** The rows, top to bottom. */
+	static inline final ROW_KEY = 0;
+
+	static inline final ROW_DELAY = 1;
+
+	static inline final ROW_SIZE = 2;
+
+	static inline final ROW_SOUNDS = 3;
+
+	static inline final ROW_OTHERS = 4;
+
+	static inline final ROW_QUICK = 5;
+
+	/**
+	 * The two-way choices. Kept here: a list written straight in a call, as `choices(row, ["ON", "OFF"])`,
+	 * crashes the game's script runtime.
+	 */
+	static var SOUND_NAMES:Array<String> = ["ON", "OFF"];
+
+	static var OTHERS_NAMES:Array<String> = ["SHOW", "HIDE"];
 
 	static inline final ESCAPE = 27;
 
@@ -60,8 +81,6 @@ class PingSettingsPopup {
 	var art:PingArt;
 
 	var settings:PingSettings;
-
-	var changed:Void->Void;
 
 	var onClose:Void->Void;
 
@@ -97,12 +116,11 @@ class PingSettingsPopup {
 
 	var open:Bool = true;
 
-	/** `changed` runs after each change; `onClose` once closed. */
-	public function new(facade:DBFacade, art:PingArt, settings:PingSettings, changed:Void->Void, onClose:Void->Void) {
+	/** `onClose` runs once closed. */
+	public function new(facade:DBFacade, art:PingArt, settings:PingSettings, onClose:Void->Void) {
 		this.facade = facade;
 		this.art = art;
 		this.settings = settings;
-		this.changed = changed;
 		this.onClose = onClose;
 
 		frame = art.popup();
@@ -110,39 +128,33 @@ class PingSettingsPopup {
 		labels = PingArt.outlined();
 		var left = CX - W / 2 + MARGIN;
 
-		heading(0, "PING KEY");
-		keyButton = option(choiceX(0), rowY(0), "", function() {
-			waitingForKey = true;
-			refresh();
-		});
+		heading(ROW_KEY, "PING KEY");
+		keyButton = option(choiceX(0), rowY(ROW_KEY), "", choose(ROW_KEY, 0));
 		keyLabel = keyButton.label;
 
-		heading(1, "WHEEL DELAY");
-		delays = choices(1, PingSettings.DELAY_NAMES, function(i) settings.delay = i);
-		heading(2, "PING SIZE");
-		sizes = choices(2, PingSettings.SIZE_NAMES, function(i) settings.size = i);
-		heading(3, "PING SOUNDS");
-		sounds = choices(3, ["ON", "OFF"], function(i) settings.sounds = i == 0);
-		heading(4, "OTHERS' PINGS");
-		others = choices(4, ["SHOW", "HIDE"], function(i) settings.others = i == 0);
+		heading(ROW_DELAY, "WHEEL DELAY");
+		delays = choices(ROW_DELAY, PingSettings.DELAY_NAMES);
+		heading(ROW_SIZE, "PING SIZE");
+		sizes = choices(ROW_SIZE, PingSettings.SIZE_NAMES);
+		heading(ROW_SOUNDS, "PING SOUNDS");
+		sounds = choices(ROW_SOUNDS, SOUND_NAMES);
+		heading(ROW_OTHERS, "OTHERS' PINGS");
+		others = choices(ROW_OTHERS, OTHERS_NAMES);
 
-		heading(5, "QUICK PING");
+		heading(ROW_QUICK, "QUICK PING");
 		quickIcon = new Sprite();
 		quickIcon.x = left + CHOICES_X - 34;
-		quickIcon.y = rowY(5);
+		quickIcon.y = rowY(ROW_QUICK);
 		frame.addChild(quickIcon);
 		quickLabel = art.text(true, 13, WHITE, 170, TextFormatAlign.LEFT);
 		quickLabel.x = left + CHOICES_X - 16;
-		quickLabel.y = rowY(5) - 11;
+		quickLabel.y = rowY(ROW_QUICK) - 11;
 		labels.addChild(quickLabel);
-		resetButton = option(choiceX(2), rowY(5), "RESET", function() {
-			settings.quick = null;
-			save();
-		});
+		resetButton = option(choiceX(2), rowY(ROW_QUICK), "RESET", choose(ROW_QUICK, 0));
 
 		note = art.text(false, 10, DIM, W - 2 * MARGIN, TextFormatAlign.LEFT);
 		note.x = left + 6;
-		note.y = rowY(5) + 26;
+		note.y = rowY(ROW_QUICK) + 26;
 		labels.addChild(note);
 
 		frame.addChild(labels);
@@ -185,7 +197,6 @@ class PingSettingsPopup {
 
 	function save():Void {
 		settings.save();
-		changed();
 		refresh();
 	}
 
@@ -201,7 +212,7 @@ class PingSettingsPopup {
 		while (quickIcon.numChildren > 0)
 			quickIcon.removeChildAt(0);
 		quickIcon.addChild(PingIcon.create(settings.quick == null ? PingKind.LOOK : settings.quick, 22));
-		quickLabel.text = settings.quick == null ? "PING! (ATTACK! ON ENEMIES)" : settings.quick.label;
+		quickLabel.text = settings.quick == null ? "DEFAULT: PING!" : settings.quick.label;
 		resetButton.enabled = settings.quick != null;
 		note.text = waitingForKey ? "PRESS THE KEY TO PING WITH, OR ESC TO KEEP " + PingSettings.keyName(settings.key) : "PICK A CALLOUT ON THE WHEEL AND IT BECOMES YOUR QUICK PING: A TAP SENDS IT";
 	}
@@ -219,19 +230,39 @@ class PingSettingsPopup {
 		labels.addChild(label);
 	}
 
-	function choices(row:Int, names:Array<String>, pick:Int->Void):Array<UIButton> {
+	function choices(row:Int, names:Array<String>):Array<UIButton> {
 		var group:Array<UIButton> = [];
 		for (i in 0...names.length)
-			group.push(option(choiceX(i), rowY(row), names[i], choose(pick, i)));
+			group.push(option(choiceX(i), rowY(row), names[i], choose(row, i)));
 		return group;
 	}
 
-	/** A callback for one choice, made apart so each keeps its own index. */
-	function choose(pick:Int->Void, index:Int):Void->Void {
-		return function() {
-			pick(index);
-			save();
-		};
+	/**
+	 * A button's callback, made apart so each keeps its own row and index. Only numbers are caught in
+	 * it: handing a small function to each row to set its setting crashed the game's script runtime.
+	 */
+	function choose(row:Int, index:Int):Void->Void {
+		return function() pick(row, index);
+	}
+
+	/** A button pressed: the `index`th of the row `row`. */
+	function pick(row:Int, index:Int):Void {
+		if (row == ROW_KEY) {
+			waitingForKey = true;
+			refresh();
+			return;
+		}
+		if (row == ROW_DELAY)
+			settings.delay = index;
+		else if (row == ROW_SIZE)
+			settings.size = index;
+		else if (row == ROW_SOUNDS)
+			settings.sounds = index == 0;
+		else if (row == ROW_OTHERS)
+			settings.others = index == 0;
+		else if (row == ROW_QUICK)
+			settings.quick = null;
+		save();
 	}
 
 	/** One of the game's buttons, at a smaller size. */

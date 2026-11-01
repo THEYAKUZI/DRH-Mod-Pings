@@ -399,7 +399,11 @@ class Main extends Mod {
 	function openSettings():Void {
 		if (settingsPopup != null || facade == null || art == null)
 			return;
-		settingsPopup = new PingSettingsPopup(facade, art, settings, function() {}, function() settingsPopup = null);
+		settingsPopup = new PingSettingsPopup(facade, art, settings, settingsClosed);
+	}
+
+	function settingsClosed():Void {
+		settingsPopup = null;
 	}
 
 	function remove(marker:PingMarker):Void {
