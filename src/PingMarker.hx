@@ -57,6 +57,8 @@ class PingMarker {
 
 	var target:Null<ActorGameObject>;
 
+	var size:Float;
+
 	/** How far over the target's feet its head is, in world units; 0 for a spot. */
 	var lift:Float = 0;
 
@@ -74,11 +76,13 @@ class PingMarker {
 
 	var arrow:Null<DisplayObject>;
 
-	public function new(kind:PingKind, sender:String, x:Float, y:Float, target:Null<ActorGameObject>, art:PingArt) {
+	/** `size` scales the icon, its rings and its edge marker. */
+	public function new(kind:PingKind, sender:String, x:Float, y:Float, target:Null<ActorGameObject>, art:PingArt, size:Float) {
 		this.kind = kind;
 		this.x = x;
 		this.y = y;
 		this.target = target;
+		this.size = size;
 		life = target != null ? TARGET_LIFE : LIFE;
 		if (target != null)
 			lift = headHeight(target);
@@ -141,12 +145,13 @@ class PingMarker {
 		drawRings(foot.x, foot.y, alpha);
 		var head = lift > 0 ? space.globalToLocal(world.localToGlobal(new Point(x, y - lift))) : foot;
 		// Drops onto its rings with a bounce, then sways a little.
-		var bob = age < 0.35 ? -34 * (1 - backOut(age / 0.35)) : Math.sin((age - 0.35) * 4.5) * 2.5;
+		var bob = (age < 0.35 ? -34 * (1 - backOut(age / 0.35)) : Math.sin((age - 0.35) * 4.5) * 2.5) * size;
+		icon.scaleX = icon.scaleY = size;
 		icon.x = head.x;
-		icon.y = head.y - ICON_SIZE * 0.55 + bob;
+		icon.y = head.y - ICON_SIZE * 0.55 * size + bob;
 		icon.alpha = alpha;
 		name.x = head.x - name.width / 2;
-		name.y = icon.y - ICON_SIZE * 0.5 - 20;
+		name.y = icon.y - ICON_SIZE * 0.5 * size - 20;
 		name.alpha = alpha;
 	}
 
@@ -177,7 +182,7 @@ class PingMarker {
 		// The arrow points left unturned, as the game turns it.
 		if (arrow != null)
 			arrow.rotation = Math.atan2(foot.y - widget.y, foot.x - widget.x) * 180 / Math.PI + 180;
-		var scale = WIDGET_SCALE * (age < 0.3 ? 0.4 + 0.6 * backOut(age / 0.3) : 1);
+		var scale = WIDGET_SCALE * size * (age < 0.3 ? 0.4 + 0.6 * backOut(age / 0.3) : 1);
 		widget.scaleX = widget.scaleY = scale;
 		widget.alpha = alpha;
 	}
@@ -186,12 +191,13 @@ class PingMarker {
 		var g = ground.graphics;
 		g.clear();
 		var grow = age < 0.25 ? backOut(age / 0.25) : 1;
-		ring(g, px, py, RING * grow, 7, 3.5, alpha);
-		ring(g, px, py, RING * 0.45 * grow, 5, 2.2, alpha);
+		var radius = RING * size;
+		ring(g, px, py, radius * grow, 7, 3.5, alpha);
+		ring(g, px, py, radius * 0.45 * grow, 5, 2.2, alpha);
 		// A ripple runs out as it lands.
 		if (age < 0.7) {
 			var u = age / 0.7;
-			ring(g, px, py, RING + RING * 1.5 * (1 - (1 - u) * (1 - u)), 4, 2.5, alpha * (1 - u));
+			ring(g, px, py, radius + radius * 1.5 * (1 - (1 - u) * (1 - u)), 4, 2.5, alpha * (1 - u));
 		}
 	}
 

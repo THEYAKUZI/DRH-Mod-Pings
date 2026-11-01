@@ -30,12 +30,27 @@ class PingWheel {
 	/** The widget's own label colour. */
 	static inline final LABEL = 0xFFCC66;
 
+	static inline final TICK_GREEN = 0x58C93A;
+
+	/** Where the tick sits: up right of a slice's icon, or of the centre's. */
+	static inline final TICK_OFFSET = 16.0;
+
+	static inline final TICK_CENTRE_X = 20.0;
+
+	static inline final TICK_CENTRE_Y = -24.0;
+
 	public var root(default, null):Sprite;
 
 	public var shown(get, never):Bool;
 
 	/** The callout under the cursor: a slice, or the centre. */
 	public var selected(default, null):PingKind;
+
+	/** Whether the cursor is on the centre. */
+	public var onCentre(get, never):Bool;
+
+	/** Marks the quick ping, which a tap of the key sends. */
+	var tick:Shape;
 
 	var centre:PingKind;
 
@@ -73,20 +88,36 @@ class PingWheel {
 		label.x = -60;
 		label.y = 8;
 		root.addChild(label);
+		tick = new Shape();
+		drawTick(tick.graphics);
+		root.addChild(tick);
 	}
 
 	function get_shown():Bool {
 		return root.visible;
 	}
 
-	/** Opens on `x`, `y`, its centre being `centre`. */
-	public function show(x:Float, y:Float, centre:PingKind):Void {
+	function get_onCentre():Bool {
+		return hovered < 0;
+	}
+
+	/** Opens on `x`, `y`, its centre being `centre`; the tick on `quick`, or on the centre when null. */
+	public function show(x:Float, y:Float, centre:PingKind, quick:Null<PingKind>):Void {
 		this.centre = centre;
 		if (centreIcon != null)
 			root.removeChild(centreIcon);
 		centreIcon = PingIcon.create(centre, 26);
 		centreIcon.y = -9;
 		root.addChild(centreIcon);
+		var slice = quick == null ? -1 : PingKind.WHEEL.indexOf(quick);
+		if (slice < 0) {
+			tick.x = TICK_CENTRE_X;
+			tick.y = TICK_CENTRE_Y;
+		} else {
+			tick.x = icons[slice].x + TICK_OFFSET;
+			tick.y = icons[slice].y - TICK_OFFSET;
+		}
+		root.setChildIndex(tick, root.numChildren - 1);
 		root.x = x;
 		root.y = y;
 		root.visible = true;
@@ -151,6 +182,18 @@ class PingWheel {
 		}
 		rim(g, OUTER);
 		rim(g, INNER);
+	}
+
+	/** A green badge with a white tick, outlined as the wheel. */
+	static function drawTick(g:Graphics):Void {
+		g.lineStyle(3, PingIcon.OUTLINE);
+		g.beginFill(TICK_GREEN);
+		g.drawCircle(0, 0, 9);
+		g.endFill();
+		g.lineStyle(3, 0xFFFFFF);
+		g.moveTo(-4.5, 0.5);
+		g.lineTo(-1.2, 3.8);
+		g.lineTo(4.5, -3.2);
 	}
 
 	/** A gold rim with dark edges, as on the game's round frames. */

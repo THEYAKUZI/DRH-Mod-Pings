@@ -5,6 +5,7 @@ import brain.assetRepository.SwfAsset;
 import brain.sound.SoundAsset;
 import facade.DBFacade;
 import openfl.display.MovieClip;
+import openfl.display.Sprite;
 import openfl.filters.GlowFilter;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
@@ -20,6 +21,8 @@ class PingArt {
 
 	static inline final SOUND_SWF = "Resources/Audio/soundEffects.swf";
 
+	static inline final TOWN_SWF = "Resources/Art2D/UI/db_UI_town.swf";
+
 	static inline final VOLUME = 0.8;
 
 	/** The game's text outline, as on its nametags. */
@@ -27,6 +30,13 @@ class PingArt {
 
 	/** True once the widget is loaded: nothing shows before. */
 	public var ready(get, never):Bool;
+
+	/** True once the town art is loaded too, for the settings. */
+	public var townReady(get, never):Bool;
+
+	var town:Null<SwfAsset>;
+
+	var bodyFont:String = "_sans";
 
 	var loader:AssetLoadingComponent;
 
@@ -53,12 +63,58 @@ class PingArt {
 				titleEmbedded = field.embedFonts;
 			}
 		});
+		loader.getSwfAsset(DBFacade.buildFullDownloadPath(TOWN_SWF), function(asset:SwfAsset) {
+			var popupType:Dynamic = asset.getClass("popup");
+			var sample:MovieClip = popupType == null ? null : cast ASCompat.createInstance(popupType, []);
+			var body = sample == null ? null : sample.getChildByName("message_label");
+			if (Std.isOfType(body, TextField))
+				bodyFont = (cast body : TextField).defaultTextFormat.font;
+			town = asset;
+		});
 		for (kind in PingKind.ALL)
 			loadSound(kind);
 	}
 
 	function get_ready():Bool {
 		return widgetType != null;
+	}
+
+	function get_townReady():Bool {
+		return town != null && widgetType != null;
+	}
+
+	/** The game's town popup: a frame (`popup_base`), a banner and its title, a close button. */
+	public function popup():MovieClip {
+		return townSymbol("popup");
+	}
+
+	/** The game's prompt button: `up`, `over` and `disabled` states, and a `label`. */
+	public function button():MovieClip {
+		return townSymbol("UI_prompt_button_extended");
+	}
+
+	function townSymbol(name:String):MovieClip {
+		var type:Dynamic = town.getClass(name);
+		return cast ASCompat.createInstance(type, []);
+	}
+
+	/** A label in the game's comic font, or else its bold one, to go in `outlined()`. */
+	public function text(title:Bool, size:Int, color:Int, width:Float, align:TextFormatAlign):TextField {
+		var field = PingArt.label(width, size * 1.7);
+		field.embedFonts = titleEmbedded;
+		var format = new TextFormat(title ? titleFont : bodyFont, size, color);
+		format.align = align;
+		field.defaultTextFormat = format;
+		return field;
+	}
+
+	/** A layer for labels, outlined as the game's popups are: one outline for them all. */
+	public static function outlined():Sprite {
+		var layer = new Sprite();
+		layer.mouseEnabled = false;
+		layer.mouseChildren = false;
+		layer.filters = [new GlowFilter(GLOW, 1, 4, 4, 4)];
+		return layer;
 	}
 
 	/**
