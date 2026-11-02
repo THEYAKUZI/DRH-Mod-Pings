@@ -333,7 +333,7 @@ class Main extends Mod {
 			targetName = enemy.name;
 		}
 		// As if typed in the chat: the game shows it here at once too, which shows the ping.
-		player.sendChat(player.screenName + ": " + PingChat.encode(kind, x, y, target, targetName));
+		player.sendChat(player.screenName + ": " + PingChat.encode(kind, x, y, target, targetName, settings.hideCode));
 	}
 
 	function show(ping:PingChat, sender:String):Void {

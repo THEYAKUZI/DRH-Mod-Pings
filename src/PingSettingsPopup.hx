@@ -17,7 +17,7 @@ class PingSettingsPopup {
 	/** The popup's size in its own units; the game shows its popups at `SCALE`. */
 	static inline final W = 560.0;
 
-	static inline final H = 340.0;
+	static inline final H = 380.0;
 
 	static inline final SCALE = 1.8;
 
@@ -53,7 +53,9 @@ class PingSettingsPopup {
 
 	static inline final ROW_OTHERS = 4;
 
-	static inline final ROW_QUICK = 5;
+	static inline final ROW_CODE = 5;
+
+	static inline final ROW_QUICK = 6;
 
 	/**
 	 * The two-way choices. Kept here: a list written straight in a call, as `choices(row, ["ON", "OFF"])`,
@@ -62,6 +64,8 @@ class PingSettingsPopup {
 	static var SOUND_NAMES:Array<String> = ["ON", "OFF"];
 
 	static var OTHERS_NAMES:Array<String> = ["SHOW", "HIDE"];
+
+	static var CODE_NAMES:Array<String> = ["SHOWN", "HIDDEN"];
 
 	static inline final ESCAPE = 27;
 
@@ -106,6 +110,8 @@ class PingSettingsPopup {
 
 	var others:Array<UIButton>;
 
+	var codes:Array<UIButton>;
+
 	var resetButton:UIButton;
 
 	var quickIcon:Sprite;
@@ -140,6 +146,8 @@ class PingSettingsPopup {
 		sounds = choices(ROW_SOUNDS, SOUND_NAMES);
 		heading(ROW_OTHERS, "OTHERS' PINGS");
 		others = choices(ROW_OTHERS, OTHERS_NAMES);
+		heading(ROW_CODE, "CHAT CODE");
+		codes = choices(ROW_CODE, CODE_NAMES);
 
 		heading(ROW_QUICK, "QUICK PING");
 		quickIcon = new Sprite();
@@ -209,6 +217,7 @@ class PingSettingsPopup {
 		mark(sizes, settings.size);
 		mark(sounds, settings.sounds ? 0 : 1);
 		mark(others, settings.others ? 0 : 1);
+		mark(codes, settings.hideCode ? 1 : 0);
 		while (quickIcon.numChildren > 0)
 			quickIcon.removeChildAt(0);
 		quickIcon.addChild(PingIcon.create(settings.quick == null ? PingKind.LOOK : settings.quick, 22));
@@ -260,6 +269,8 @@ class PingSettingsPopup {
 			settings.sounds = index == 0;
 		else if (row == ROW_OTHERS)
 			settings.others = index == 0;
+		else if (row == ROW_CODE)
+			settings.hideCode = index == 1;
 		else if (row == ROW_QUICK)
 			settings.quick = null;
 		save();

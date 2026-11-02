@@ -36,6 +36,9 @@ class PingSettings {
 	/** Whether the other players' pings show. */
 	public var others:Bool = true;
 
+	/** Whether the ping's tag is hidden in the chat line, for players without the mod. */
+	public var hideCode:Bool = false;
+
 	/** What a tap of the key sends: the callout last picked on the wheel, null for the spot (or an attack on an enemy). */
 	public var quick:Null<PingKind>;
 
@@ -64,6 +67,7 @@ class PingSettings {
 			size: size,
 			sounds: sounds,
 			others: others,
+			hideCode: hideCode,
 			quick: quick == null ? "" : quick.code
 		};
 		try {
@@ -88,6 +92,8 @@ class PingSettings {
 				sounds = data.sounds == true;
 			if (data.others != null)
 				others = data.others == true;
+			if (data.hideCode != null)
+				hideCode = data.hideCode == true;
 			if (data.quick != null)
 				quick = PingKind.byCode(Std.string(data.quick));
 		} catch (error:Dynamic) {

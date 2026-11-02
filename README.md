@@ -13,9 +13,9 @@ Mark spots and enemies for your party, like pings in League of Legends, drawn in
 
 A ping drops onto the floor with its icon, its rings and a sound, and shows who sent it. When it is off screen, the game's own edge marker points to it, as it does for teammates.
 
-**Settings:** the game's options (the gear) get a **PINGS** button, in town and in dungeons. There you can change the ping key, how long to hold it before the wheel opens, the size of pings, turn their sounds off, hide the other players' pings, and reset your quick ping.
+**Settings:** the game's options (the gear) get a **PINGS** button, in town and in dungeons. There you can change the ping key, how long to hold it before the wheel opens, the size of pings, turn their sounds off, hide the other players' pings, hide the ping's code in the chat, and reset your quick ping.
 
-**Who sees it:** pings travel through the dungeon's chat. Party members with this mod see the ping, never the chat line. Party members without it read a short callout in the chat instead, such as `Danger! [p:d:1234:-567]`.
+**Who sees it:** pings travel through the dungeon's chat. Party members with this mod see the ping, never the chat line. Party members without it read a short callout in the chat instead, such as `Danger! [p:d:1234:-567]`. With **CHAT CODE** set to **HIDDEN**, the code is written in invisible characters and they read only `Danger!`. Party members with this mod see your pings either way.
 
 You can send up to 4 pings every 4 seconds.
 <!-- /drh:show -->
