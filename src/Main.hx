@@ -339,10 +339,13 @@ class Main extends Mod {
 	function show(ping:PingChat, sender:String):Void {
 		if (art == null || !art.ready || ctx.state.floor == null)
 			return;
-		var stamps = shownBy.get(sender);
+		var stamps:Null<Array<Float>> = shownBy.get(sender);
 		if (stamps == null) {
-			stamps = [];
-			shownBy.set(sender, stamps);
+			// Typed where it is made: an untyped `[]` here is built as another kind of array, and the
+			// next ping's read of a time from it crashed the game.
+			var fresh:Array<Float> = [];
+			stamps = fresh;
+			shownBy.set(sender, fresh);
 		}
 		if (!allow(stamps, SHOW_LIMIT))
 			return;

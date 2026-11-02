@@ -2,7 +2,7 @@
   "id": "pings",
   "name": "Pings",
   "description": "Hold G for a ping wheel: call out danger, help, attacks, loot and more to your party, MOBA-style.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "THEYAKUZI",
   "api": "1.1",
   "drh": "14-15",
